@@ -49,7 +49,7 @@ jobs:
       - name: 📁 Save pre state
         working-directory: test
         run: |
-          npm list --json > ../logs/pre/package-tree.json
+          npm list --depth 999999 --json > ../logs/pre/package-tree.json
           cp package-lock.json ../logs/pre/package-lock.json
 
       - name: 🧪 Upgrade to SDK 46
@@ -61,7 +61,7 @@ jobs:
       - name: 📁 Save post install state
         working-directory: test
         run: |
-          npm list --json > ../logs/post-install/package-tree.json
+          npm list --depth 999999 --json > ../logs/post-install/package-tree.json
           cp package-lock.json ../logs/post-install/package-lock.json
 
       - name: 🧪 Force reinstall
@@ -73,7 +73,7 @@ jobs:
       - name: 📁 Save post reinstall state
         working-directory: test
         run: |
-          npm list --json > ../logs/post-reinstall/package-tree.json
+          npm list --depth 999999 --json > ../logs/post-reinstall/package-tree.json
           cp package-lock.json ../logs/post-reinstall/package-lock.json
 
       - name: 📁 Store info
@@ -103,3 +103,25 @@ jobs:
           echo "::group::[Post reinstall] package-lock.json"
           echo $(cat logs/post-reinstall/package-lock.json)
           echo "::endgroup::"
+
+      - name: 🕵️ Determine unexpected changes
+        run: |
+          echo "::group::[Pre/Post install] package-lock.json"
+          diff logs/pre/package-lock.json logs/post-install/package-lock.json
+          echo "::endgroup::"
+          echo "::group::[Pre/Post reinstall] package-lock.json"
+          diff logs/pre/package-lock.json logs/post-reinstall/package-lock.json
+          echo "::endgroup::"
+          echo "::group::[Post install/Pre] package-lock.json"
+          diff logs/post-install/package-lock.json logs/pre/package-lock.json
+          echo "::endgroup::"
+          echo "::group::[Post install/reinstall] package-lock.json"
+          diff logs/post-instal/package-lock.json logs/post-reinstall/package-lock.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/Pre] package-lock.json"
+          diff logs/post-reinstall/package-lock.json logs/pre/package-lock.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/install] package-lock.json"
+          diff logs/post-reinstal/package-lock.json logs/post-install/package-lock.json
+          echo "::endgroup::"
+
