@@ -11,10 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: test
-
 jobs:
   upgrade:
     runs-on: ${{ matrix.os }}-latest
@@ -44,35 +40,38 @@ jobs:
 
       - name: 🏗 Setup project
         run: |
-          npx create-expo-app . -t expo-template-tabs@45
-          mkdir -p ../logs/pre
-          mkdir -p ../logs/post-install
-          mkdir -p ../logs/post-reinstall
-
-      - name: 📦 Install dependencies
-        run: npm ci
+          mkdir -p test
+          mkdir -p logs/pre
+          mkdir -p logs/post-install
+          mkdir -p logs/post-reinstall
+          npx create-expo-app ./test -t expo-template-tabs@45
 
       - name: 📁 Save pre state
+        working-directory: test
         run: |
           npm list --json > ../logs/pre/package-tree.json
           cp package-lock.json ../logs/pre/package-lock.json
 
       - name: 🧪 Upgrade to SDK 46
+        working-directory: test
         run: |
           npx expo install expo@46
           npx expo install --fix
 
       - name: 📁 Save post install state
+        working-directory: test
         run: |
           npm list --json > ../logs/post-install/package-tree.json
           cp package-lock.json ../logs/post-install/package-lock.json
 
       - name: 🧪 Force reinstall
+        working-directory: test
         run: |
           rm -rf node_modules package-lock.json
           npm install
 
       - name: 📁 Save post reinstall state
+        working-directory: test
         run: |
           npm list --json > ../logs/post-reinstall/package-tree.json
           cp package-lock.json ../logs/post-reinstall/package-lock.json
@@ -87,20 +86,20 @@ jobs:
       - name: 📁 Log everything
         run: |
           echo "::group::[Pre] package-tree.json"
-          echo $(cat ../logs/pre/package-tree.json)
+          echo $(cat logs/pre/package-tree.json)
           echo "::endgroup::"
           echo "::group::[Pre] package-lock.json"
-          echo $(cat ../logs/pre/package-lock.json)
+          echo $(cat logs/pre/package-lock.json)
           echo "::endgroup::"
           echo "::group::[Post install] package-tree.json"
-          echo $(cat ../logs/post-install/package-tree.json)
+          echo $(cat logs/post-install/package-tree.json)
           echo "::endgroup::"
           echo "::group::[Post install] package-lock.json"
-          echo $(cat ../logs/post-install/package-lock.json)
+          echo $(cat logs/post-install/package-lock.json)
           echo "::endgroup::"
           echo "::group::[Post reinstall] package-tree.json"
-          echo $(cat ../logs/post-reinstall/package-tree.json)
+          echo $(cat logs/post-reinstall/package-tree.json)
           echo "::endgroup::"
           echo "::group::[Post reinstall] package-lock.json"
-          echo $(cat ../logs/post-reinstall/package-lock.json)
+          echo $(cat logs/post-reinstall/package-lock.json)
           echo "::endgroup::"
