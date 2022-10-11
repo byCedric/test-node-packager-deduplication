@@ -124,4 +124,22 @@ jobs:
           echo "::group::[Post reinstall/install] package-lock.json"
           diff logs/post-reinstall/package-lock.json logs/post-install/package-lock.json
           echo "::endgroup::"
+          echo "::group::[Pre/Post install] package-tree.json"
+          diff logs/pre/package-tree.json logs/post-install/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Pre/Post reinstall] package-tree.json"
+          diff logs/pre/package-tree.json logs/post-reinstall/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post install/Pre] package-tree.json"
+          diff logs/post-install/package-tree.json logs/pre/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post install/reinstall] package-tree.json"
+          diff logs/post-install/package-tree.json logs/post-reinstall/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/Pre] package-tree.json"
+          diff logs/post-reinstall/package-tree.json logs/pre/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/install] package-tree.json"
+          diff logs/post-reinstall/package-tree.json logs/post-install/package-tree.json
+          echo "::endgroup::"
 
