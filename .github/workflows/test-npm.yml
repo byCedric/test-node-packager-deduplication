@@ -1,0 +1,85 @@
+name: test-npm
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: test
+
+jobs:
+  upgrade:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        npm:
+          # - 3.x
+          # - 4.x
+          # - 5.x
+          # - 6.x
+          # - 7.x
+          - 8.x
+          # - 9.0.0-pre.4
+        os:
+          # - macos
+          - ubuntu
+          # - windows
+    steps:
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: 🏗 Setup npm
+        runs: npm install --global npm@${{ matrix.npm }}
+
+      - name: 🏗 Setup project
+        runs: |
+          npx create-expo-app . -t expo-template-tabs@45
+          mkdir -p ../logs/pre
+          mkdir -p ../logs/post-install
+          mkdir -p ../logs/post-reinstall
+
+      - name: 📦 Install dependencies
+        runs: npm ci
+
+      - name: 📁 Save pre state
+        runs: |
+          npm list --json > ../logs/pre/package-tree.json
+          cp package-lock.json ../logs/pre/package-lock.json
+
+      - name: 🧪 Upgrade to SDK 46
+        runs: |
+          npx expo install expo@46
+          npx expo install --fix
+
+      - name: 📁 Save post install state
+        runs: |
+          npm list --json > ../logs/post-install/package-tree.json
+          cp package-lock.json ../logs/post-install/package-lock.json
+
+      - name: 🧪 Force reinstall
+        runs: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: 📁 Save post reinstall state
+        runs: |
+          npm list --json > ../logs/post-reinstall/package-tree.json
+          cp package-lock.json ../logs/post-reinstall/package-lock.json
+
+       - name: 📁 Store info
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-${{ matrix.os }}-${{ matrix.npm }}
+          path: |
+            logs/**
