@@ -40,46 +40,67 @@ jobs:
           node-version: 16.x
 
       - name: 🏗 Setup npm
-        runs: npm install --global npm@${{ matrix.npm }}
+        run: npm install --global npm@${{ matrix.npm }}
 
       - name: 🏗 Setup project
-        runs: |
+        run: |
           npx create-expo-app . -t expo-template-tabs@45
           mkdir -p ../logs/pre
           mkdir -p ../logs/post-install
           mkdir -p ../logs/post-reinstall
 
       - name: 📦 Install dependencies
-        runs: npm ci
+        run: npm ci
 
       - name: 📁 Save pre state
-        runs: |
+        run: |
           npm list --json > ../logs/pre/package-tree.json
           cp package-lock.json ../logs/pre/package-lock.json
 
       - name: 🧪 Upgrade to SDK 46
-        runs: |
+        run: |
           npx expo install expo@46
           npx expo install --fix
 
       - name: 📁 Save post install state
-        runs: |
+        run: |
           npm list --json > ../logs/post-install/package-tree.json
           cp package-lock.json ../logs/post-install/package-lock.json
 
       - name: 🧪 Force reinstall
-        runs: |
+        run: |
           rm -rf node_modules package-lock.json
           npm install
 
       - name: 📁 Save post reinstall state
-        runs: |
+        run: |
           npm list --json > ../logs/post-reinstall/package-tree.json
           cp package-lock.json ../logs/post-reinstall/package-lock.json
 
-       - name: 📁 Store info
+      - name: 📁 Store info
         uses: actions/upload-artifact@v3
         with:
           name: npm-${{ matrix.os }}-${{ matrix.npm }}
           path: |
             logs/**
+
+      - name: 📁 Log everything
+        run: |
+          echo "::group::[Pre] package-tree.json"
+          echo $(cat ../logs/pre/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Pre] package-lock.json"
+          echo $(cat ../logs/pre/package-lock.json)
+          echo "::endgroup::"
+          echo "::group::[Post install] package-tree.json"
+          echo $(cat ../logs/post-install/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Post install] package-lock.json"
+          echo $(cat ../logs/post-install/package-lock.json)
+          echo "::endgroup::"
+          echo "::group::[Post reinstall] package-tree.json"
+          echo $(cat ../logs/post-reinstall/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Post reinstall] package-lock.json"
+          echo $(cat ../logs/post-reinstall/package-lock.json)
+          echo "::endgroup::"
