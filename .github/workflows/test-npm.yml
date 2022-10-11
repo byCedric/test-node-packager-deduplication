@@ -18,17 +18,17 @@ jobs:
       fail-fast: false
       matrix:
         npm:
-          # - 3.x
-          # - 4.x
-          # - 5.x
-          # - 6.x
-          # - 7.x
+          - 3.x
+          - 4.x
+          - 5.x
+          - 6.x
+          - 7.x
           - 8.x
-          # - 9.0.0-pre.4
+          - 9.0.0-pre.4
         os:
-          # - macos
+          - macos
           - ubuntu
-          # - windows
+          - windows
     steps:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
