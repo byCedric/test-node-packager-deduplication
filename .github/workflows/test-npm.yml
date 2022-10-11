@@ -67,7 +67,7 @@ jobs:
       - name: 🧪 Force reinstall
         working-directory: test
         run: |
-          rm -rf node_modules package-lock.json
+          npx rimraf node_modules package-lock.json
           npm install
 
       - name: 📁 Save post reinstall state
