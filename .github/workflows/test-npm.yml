@@ -46,6 +46,12 @@ jobs:
           mkdir -p logs/post-reinstall
           npx create-expo-app ./test -t expo-template-tabs@45
 
+      - name: Hotfix for npm <=6
+        working-directory: test
+        run: |
+          npx rimraf yarn.lock node_modules
+          npm install
+
       - name: 📁 Save pre state
         working-directory: test
         run: |
