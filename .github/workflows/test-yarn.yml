@@ -25,6 +25,9 @@ jobs:
           - ubuntu
           - windows
     steps:
+      - name: 🏗 Setup repository
+        uses: actions/checkout@v3
+
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
@@ -36,7 +39,7 @@ jobs:
           mkdir -p logs/pre
           mkdir -p logs/post-install
           mkdir -p logs/post-reinstall
-          npx create-expo-app ./test -t expo-template-tabs@${{ inputs.fromSdk }}
+          cp -R ./template ./test
 
       - name: Force yarn install
         working-directory: test
