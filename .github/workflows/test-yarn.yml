@@ -52,6 +52,12 @@ jobs:
         run: |
           yarn list --depth 999999 --json > ../logs/pre/package-tree.json
           cp yarn.lock ../logs/pre/yarn.lock
+          echo "::group::[Pre] package-tree.json"
+          echo $(cat ../logs/pre/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Pre] yarn.lock"
+          echo $(cat ../logs/pre/yarn.lock)
+          echo "::endgroup::"
 
       - name: 🧪 Upgrade to SDK ${{ inputs.toSdk }}
         working-directory: test
