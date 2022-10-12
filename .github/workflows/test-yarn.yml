@@ -1,0 +1,140 @@
+name: test-yarn
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upgrade:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos
+          - ubuntu
+          - windows
+    steps:
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: 🏗 Setup project
+        run: |
+          mkdir -p test
+          mkdir -p logs/pre
+          mkdir -p logs/post-install
+          mkdir -p logs/post-reinstall
+          npx create-expo-app ./test -t expo-template-tabs@45
+
+      - name: Force yarn install
+        working-directory: test
+        run: |
+          npx rimraf package-lock.json node_modules
+          yarn install
+
+      - name: 📁 Save pre state
+        working-directory: test
+        run: |
+          yarn list --depth 999999 --json > ../logs/pre/package-tree.json
+          cp yarn.lock ../logs/pre/yarn.lock
+
+      - name: 🧪 Upgrade to SDK 46
+        working-directory: test
+        run: |
+          npx expo install expo@46
+          npx expo install --fix
+
+      - name: 📁 Save post install state
+        working-directory: test
+        run: |
+          yarn list --depth 999999 --json > ../logs/post-install/package-tree.json
+          cp yarn.lock ../logs/post-install/yarn.lock
+
+      - name: 🧪 Force reinstall
+        working-directory: test
+        run: |
+          npx rimraf node_modules yarn.lock
+          npm install
+
+      - name: 📁 Save post reinstall state
+        working-directory: test
+        run: |
+          yarn list --depth 999999 --json > ../logs/post-reinstall/package-tree.json
+          cp yarn.lock ../logs/post-reinstall/yarn.lock
+
+      - name: 📁 Store info
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-${{ matrix.os }}-${{ matrix.npm }}
+          path: |
+            logs/**
+
+      - name: 📁 Log everything
+        run: |
+          echo "::group::[Pre] package-tree.json"
+          echo $(cat logs/pre/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Pre] yarn.lock"
+          echo $(cat logs/pre/yarn.lock)
+          echo "::endgroup::"
+          echo "::group::[Post install] package-tree.json"
+          echo $(cat logs/post-install/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Post install] yarn.lock"
+          echo $(cat logs/post-install/yarn.lock)
+          echo "::endgroup::"
+          echo "::group::[Post reinstall] package-tree.json"
+          echo $(cat logs/post-reinstall/package-tree.json)
+          echo "::endgroup::"
+          echo "::group::[Post reinstall] yarn.lock"
+          echo $(cat logs/post-reinstall/yarn.lock)
+          echo "::endgroup::"
+
+      - name: 🕵️ Determine unexpected changes
+        run: |
+          echo "::group::[Pre/Post install] yarn.lock"
+          diff logs/pre/yarn.lock logs/post-install/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Pre/Post reinstall] yarn.lock"
+          diff logs/pre/yarn.lock logs/post-reinstall/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Post install/Pre] yarn.lock"
+          diff logs/post-install/yarn.lock logs/pre/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Post install/reinstall] yarn.lock"
+          diff logs/post-install/yarn.lock logs/post-reinstall/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/Pre] yarn.lock"
+          diff logs/post-reinstall/yarn.lock logs/pre/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/install] yarn.lock"
+          diff logs/post-reinstall/yarn.lock logs/post-install/yarn.lock
+          echo "::endgroup::"
+          echo "::group::[Pre/Post install] package-tree.json"
+          diff logs/pre/package-tree.json logs/post-install/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Pre/Post reinstall] package-tree.json"
+          diff logs/pre/package-tree.json logs/post-reinstall/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post install/Pre] package-tree.json"
+          diff logs/post-install/package-tree.json logs/pre/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post install/reinstall] package-tree.json"
+          diff logs/post-install/package-tree.json logs/post-reinstall/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/Pre] package-tree.json"
+          diff logs/post-reinstall/package-tree.json logs/pre/package-tree.json
+          echo "::endgroup::"
+          echo "::group::[Post reinstall/install] package-tree.json"
+          diff logs/post-reinstall/package-tree.json logs/post-install/package-tree.json
+          echo "::endgroup::"
+
