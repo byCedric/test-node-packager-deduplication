@@ -2,10 +2,13 @@ name: test-npm
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize]
+    inputs:
+      fromSdk:
+        description: Starting SDK version
+        default: '45'
+      toSdk:
+        description: Upgrading SDK version
+        default: '46'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -44,7 +47,7 @@ jobs:
           mkdir -p logs/pre
           mkdir -p logs/post-install
           mkdir -p logs/post-reinstall
-          npx create-expo-app ./test -t expo-template-tabs@45
+          npx create-expo-app ./test -t expo-template-tabs@${{ inputs.fromSdk }}
 
       - name: Hotfix for npm <=6
         working-directory: test
@@ -58,10 +61,10 @@ jobs:
           npm list --depth 999999 --json > ../logs/pre/package-tree.json
           cp package-lock.json ../logs/pre/package-lock.json
 
-      - name: 🧪 Upgrade to SDK 46
+      - name: 🧪 Upgrade to SDK ${{ inputs.toSdk }}
         working-directory: test
         run: |
-          npx expo install expo@46
+          npx expo install expo@${{ inputs.toSdk }}
           npx expo install --fix
 
       - name: 📁 Save post install state
