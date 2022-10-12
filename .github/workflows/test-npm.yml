@@ -50,7 +50,7 @@ jobs:
           mkdir -p logs/pre
           mkdir -p logs/post-install
           mkdir -p logs/post-reinstall
-          cp -R ./template ./test
+          mv template test
 
       - name: Hotfix for npm <=6
         working-directory: test

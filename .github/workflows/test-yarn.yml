@@ -39,7 +39,7 @@ jobs:
           mkdir -p logs/pre
           mkdir -p logs/post-install
           mkdir -p logs/post-reinstall
-          cp -R ./template ./test
+          mv template test
 
       - name: Force yarn install
         working-directory: test
